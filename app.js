@@ -15,12 +15,15 @@ const drawerScrim = $("#drawer-scrim");
 const customizeButton = $("#customize-button");
 const pauseButton = $("#pause-button");
 const soundButton = $("#sound-button");
+const countButton = $("#count-button");
 const canvas = $("#gear-canvas");
 
 const state = {
   mode: "opening",
   paused: false,
   sound: false,
+  stopping: false,
+  showingCount: false,
   audioContext: null,
   closest: null,
   exact: 0,
@@ -31,22 +34,31 @@ function playClick(count) {
   if (!state.sound || document.hidden) return;
   if (!state.audioContext) state.audioContext = new AudioContext();
   const context = state.audioContext;
-  const oscillator = context.createOscillator();
+  const duration = 0.045 + Math.random() * 0.025;
+  const sampleCount = Math.ceil(context.sampleRate * duration);
+  const buffer = context.createBuffer(1, sampleCount, context.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let i = 0; i < sampleCount; i += 1) {
+    const decay = Math.pow(1 - i / sampleCount, 3.5);
+    samples[i] = (Math.random() * 2 - 1) * decay;
+  }
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  const filter = context.createBiquadFilter();
+  filter.type = "bandpass";
+  filter.frequency.value = 620 + (count % 5) * 36 + Math.random() * 60;
+  filter.Q.value = 0.8;
   const gain = context.createGain();
-  oscillator.type = "sine";
-  oscillator.frequency.value = 190 + (count % 7) * 13;
-  gain.gain.setValueAtTime(0.0001, context.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.012, context.currentTime + 0.008);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.08);
-  oscillator.connect(gain).connect(context.destination);
-  oscillator.start();
-  oscillator.stop(context.currentTime + 0.085);
+  gain.gain.setValueAtTime(0.018, context.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+  source.connect(filter).connect(gain).connect(context.destination);
+  source.start();
 }
 
 const engine = new GearEngine(canvas, {
   onGearAdded(_gear, count) {
     playClick(count);
-    if (state.mode === "zen") canvas.setAttribute("aria-label", `A growing mechanical composition with ${count} visible gears.`);
+    if (state.mode === "zen") canvas.setAttribute("aria-label", `A growing mechanical composition with ${count} visible ${count === 1 ? "gear" : "gears"}.`);
   }
 });
 
@@ -66,6 +78,12 @@ function closePanels() {
 function startMode(mode) {
   state.mode = mode;
   state.paused = false;
+  state.stopping = false;
+  state.showingCount = false;
+  app.classList.remove("is-stopping");
+  countButton.textContent = "Show the count";
+  countButton.setAttribute("aria-pressed", "false");
+  engine.setCountOverlay(false);
   engine.setMode(mode);
   engine.setSettings(state.settings);
   engine.reset();
@@ -79,6 +97,10 @@ function startMode(mode) {
 
 function goHome() {
   state.mode = "opening";
+  state.stopping = false;
+  state.showingCount = false;
+  app.classList.remove("is-stopping");
+  engine.setCountOverlay(false);
   closePanels();
   setScreen("opening");
   modeLabel.textContent = "";
@@ -88,15 +110,19 @@ function goHome() {
 }
 
 function openGuess() {
-  if (state.mode !== "game") return;
+  if (state.mode !== "game" || state.stopping) return;
+  state.stopping = true;
+  app.classList.add("is-stopping");
   engine.stopSmoothly();
-  setScreen("game-guess");
   window.setTimeout(() => {
+    state.stopping = false;
+    app.classList.remove("is-stopping");
+    setScreen("game-guess");
     guessPanel.classList.add("is-open");
     guessPanel.setAttribute("aria-hidden", "false");
     guessInput.value = "";
     guessInput.focus();
-  }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 720);
+  }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 920);
 }
 
 function restrainedResponse(distance, count) {
@@ -133,6 +159,18 @@ function submitGuess(event) {
   resultPanel.setAttribute("aria-hidden", "false");
   setScreen("game-result");
   resultTitle.focus();
+}
+
+function toggleCount() {
+  if (state.mode !== "game") return;
+  state.showingCount = !state.showingCount;
+  engine.setCountOverlay(state.showingCount);
+  countButton.textContent = state.showingCount ? "Hide the count" : "Show the count";
+  countButton.setAttribute("aria-pressed", String(state.showingCount));
+  const count = engine.gears.length;
+  liveResult.textContent = state.showingCount
+    ? `${count} gears are highlighted and numbered.`
+    : "Gear numbers are hidden.";
 }
 
 function togglePause() {
@@ -184,6 +222,7 @@ $("#home-button").addEventListener("click", goHome);
 $("#stop-button").addEventListener("click", openGuess);
 $("#guess-form").addEventListener("submit", submitGuess);
 $("#again-button").addEventListener("click", () => startMode("game"));
+countButton.addEventListener("click", toggleCount);
 pauseButton.addEventListener("click", togglePause);
 $("#reset-button").addEventListener("click", () => { engine.reset(); state.paused = false; pauseButton.textContent = "Pause"; });
 customizeButton.addEventListener("click", openDrawer);

@@ -4,11 +4,12 @@ Shifting Gears is a browser-based kinetic counting game and generative art toy. 
 
 ## How it works
 
-- Game Mode follows a simple watch, stop, guess, reveal, again loop. The exact count comes directly from the gear data model.
-- Zen Mode grows continuously and includes pause, reset, optional quiet synthesized clicks, and a compact customization drawer.
-- New gears are placed relative to an existing parent gear. Collision checks preserve legibility while density settings allow more overlap.
-- Connected gears alternate direction. Smaller gears rotate faster than larger ones.
-- Six procedural interior variants and three tooth profiles keep the machine visually varied.
+- Game Mode follows a simple watch, stop, guess, reveal, again loop. A shallow bottom dock keeps the frozen machine visible while the player counts.
+- Results stay attached to the artwork, and an optional numbered overlay lets the player verify every gear after guessing.
+- Zen Mode grows continuously to a much larger composition. A nearly imperceptible camera reframe follows expansion beyond the initial viewport.
+- New gears are placed relative to an existing parent gear. Game Mode reserves the control area and rejects ambiguous overlap so every counted gear remains identifiable.
+- Connected gears alternate direction and use parent-derived tooth ratios. Placement also aligns tooth phase at the contact point.
+- Eight procedural interior variants, four tooth profiles, fine and chunky teeth, varied hubs, pinions, and anchor gears create stronger visual contrast.
 - Palette changes gently recolor existing gears and affect newly generated gears.
 - Canvas rendering uses cached `Path2D` geometry and transform-only animation for smooth performance with 50 or more visible gears.
 - The experience supports keyboard navigation, visible focus, semantic controls, live result announcements, reduced motion, dark mode, and responsive layouts.
@@ -47,7 +48,7 @@ In the GitHub repository settings, set Pages to use GitHub Actions if it is not 
 - `gear-engine.js`: gear data model, placement, procedural geometry, animation, and Canvas rendering
 - `tests/verify.mjs`: dependency-free structural checks
 
-No backend, database, user account, analytics service, API key, or external asset host is required. Sound is synthesized locally with the Web Audio API and is off by default.
+No backend, database, user account, analytics service, API key, or external asset host is required. Sound is synthesized locally from short filtered noise impulses and is off by default.
 
 ## Maintenance
 

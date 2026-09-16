@@ -46,29 +46,37 @@
         </button>
       </section>
 
-      <section class="game-panel" id="guess-panel" aria-labelledby="guess-title" aria-hidden="true">
-        <form id="guess-form" class="panel-card">
-          <p class="panel-kicker">The machine is still</p>
-          <h2 id="guess-title">How many gears are there?</h2>
-          <label for="guess-input">Your guess</label>
+      <section class="game-dock guess-dock" id="guess-panel" aria-labelledby="guess-title" aria-hidden="true">
+        <form id="guess-form" class="dock-inner">
+          <div class="dock-question">
+            <p class="panel-kicker">The machine is still</p>
+            <h2 id="guess-title">How many gears are there?</h2>
+          </div>
+          <label class="sr-only" for="guess-input">Your guess</label>
           <div class="guess-row">
-            <input id="guess-input" name="guess" type="number" min="1" max="999" inputmode="numeric" autocomplete="off" required />
+            <input id="guess-input" name="guess" type="number" min="1" max="999" inputmode="numeric" autocomplete="off" required aria-label="Your guess" />
             <button class="button button-primary" type="submit">Guess</button>
           </div>
         </form>
       </section>
 
-      <section class="game-panel" id="result-panel" aria-labelledby="result-title" aria-hidden="true">
-        <div class="panel-card result-card">
-          <p class="panel-kicker">The count</p>
-          <p class="actual-count" id="actual-count">0</p>
-          <h2 id="result-title" tabindex="-1">Exactly right.</h2>
-          <p class="result-detail" id="result-detail"></p>
+      <section class="game-dock result-dock" id="result-panel" aria-labelledby="result-title" aria-hidden="true">
+        <div class="dock-inner result-inner">
+          <div class="result-answer">
+            <p class="actual-count"><span id="actual-count">0</span> <span>gears</span></p>
+            <div>
+              <h2 id="result-title" tabindex="-1">Exactly right.</h2>
+              <p class="result-detail" id="result-detail"></p>
+            </div>
+          </div>
           <dl class="stats" aria-label="Session statistics">
-            <div><dt>Closest guess</dt><dd id="closest-stat">-</dd></div>
-            <div><dt>Exact guesses</dt><dd id="exact-stat">0</dd></div>
+            <div><dt>Closest</dt><dd id="closest-stat">-</dd></div>
+            <div><dt>Exact</dt><dd id="exact-stat">0</dd></div>
           </dl>
-          <button class="button button-primary again-button" id="again-button">Again</button>
+          <div class="result-actions">
+            <button class="button button-secondary count-button" id="count-button" aria-pressed="false">Show the count</button>
+            <button class="button button-primary" id="again-button">Again</button>
+          </div>
         </div>
       </section>
 
@@ -92,13 +100,13 @@
         <fieldset>
           <legend>Palette</legend>
           <div class="option-grid palette-options" data-setting="palette">
-            <button type="button" data-value="mixed" aria-pressed="true">Mixed</button>
-            <button type="button" data-value="warm" aria-pressed="false">Warm</button>
-            <button type="button" data-value="cool" aria-pressed="false">Cool</button>
-            <button type="button" data-value="muted" aria-pressed="false">Muted</button>
-            <button type="button" data-value="bright" aria-pressed="false">Bright</button>
-            <button type="button" data-value="pastel" aria-pressed="false">Pastel</button>
-            <button type="button" data-value="earthy" aria-pressed="false">Earthy</button>
+            <button type="button" data-value="mixed" aria-pressed="true"><span class="swatch" aria-hidden="true"></span>Mixed</button>
+            <button type="button" data-value="warm" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Warm</button>
+            <button type="button" data-value="cool" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Cool</button>
+            <button type="button" data-value="muted" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Muted</button>
+            <button type="button" data-value="bright" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Bright</button>
+            <button type="button" data-value="pastel" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Pastel</button>
+            <button type="button" data-value="earthy" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Earthy</button>
           </div>
         </fieldset>
 
