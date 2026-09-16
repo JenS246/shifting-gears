@@ -1,0 +1,11 @@
+{
+  "name": "shifting-gears",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 4173",
+    "test": "node --check app.js && node --check gear-engine.js && node tests/verify.mjs",
+    "build": "npm test"
+  }
+}
