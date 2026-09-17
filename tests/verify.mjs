@@ -5,7 +5,7 @@ const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const engine = await readFile(new URL("../gear-engine.js", import.meta.url), "utf8");
 
-const requiredIds = ["gear-canvas", "game-start", "game-setup", "game-confirm", "zen-start", "stop-button", "guess-form", "pause-button", "zen-studio", "reset-button"];
+const requiredIds = ["gear-canvas", "game-start", "game-setup", "game-confirm", "zen-start", "zen-customize-home", "zen-dialog", "stop-button", "guess-form", "pause-button", "zen-studio", "reset-button"];
 for (const id of requiredIds) {
   if (!html.includes(`id="${id}"`)) throw new Error(`Missing required UI element: ${id}`);
 }
@@ -33,6 +33,9 @@ if (!engine.includes("gameMeshDepth")) throw new Error("Pace-aware gear overlap 
 if (!engine.includes("GOLDEN_ANGLE")) throw new Error("Multi-direction composition choreography is missing");
 if (!engine.includes("candidateSector")) throw new Error("Sector-balanced game growth is missing");
 if (!html.includes('select data-setting="palette"') || !html.includes('select data-setting="direction"')) throw new Error("Visible Zen customization is missing");
+if (!html.includes('data-theme-choice="light"') || !html.includes('data-theme-choice="dark"')) throw new Error("Player-selectable background themes are missing");
+if (!engine.includes("setTheme(theme)")) throw new Error("Canvas theme control is missing");
+if (!app.includes("openZenDialog") || !app.includes("applyTheme")) throw new Error("Zen customization dialog behavior is missing");
 if (!html.includes('styles.css?v=') || !html.includes('app.js?v=') || !app.includes('gear-engine.js?v=')) throw new Error("Cache-safe asset versioning is missing");
 if (html.includes("—") || html.includes("–")) throw new Error("Disallowed dash character found in visible copy");
 

@@ -147,7 +147,7 @@ h1 {
 
 .opening-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
 
-.button, .quiet-button {
+.button, .quiet-button, .theme-options button {
   min-height: 48px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -158,8 +158,8 @@ h1 {
 .button { padding: 0 22px; font-weight: 700; white-space: nowrap; }
 .button-primary { border-color: var(--control); background: var(--control); color: var(--control-ink); }
 .button-secondary { background: var(--paper-glass); color: var(--ink); backdrop-filter: blur(12px); }
-.button:hover, .quiet-button:hover { transform: translateY(-2px); }
-.button:active, .quiet-button:active, .stop-button:active { transform: translateY(1px) scale(0.98); }
+.button:hover, .quiet-button:hover, .theme-options button:hover { transform: translateY(-2px); }
+.button:active, .quiet-button:active, .theme-options button:active, .stop-button:active { transform: translateY(1px) scale(0.98); }
 
 .topbar {
   position: fixed;
@@ -261,11 +261,8 @@ h1 {
 .count-button { padding-inline: 15px; }
 
 .zen-studio {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  width: min(970px, calc(100% - 28px));
-  padding: 8px;
+  width: auto;
+  padding: 6px;
   border: 1px solid rgba(255,255,255,0.38);
   border-radius: calc(var(--radius) + 5px);
   background: var(--paper-glass);
@@ -278,9 +275,42 @@ h1 {
 .quiet-button:hover { background: rgba(80, 86, 78, 0.09); }
 .sound-button { color: var(--ink-soft); }
 
-.zen-tuners { display: grid; grid-template-columns: repeat(5, minmax(100px, 1fr)); gap: 6px; }
-.zen-tuners label { display: grid; gap: 3px; color: var(--ink-soft); font-size: .61rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
-.zen-tuners select { min-width: 0; height: 32px; padding: 0 26px 0 9px; border: 1px solid var(--line); border-radius: calc(var(--radius) - 5px); background: rgba(255,255,255,.2); color: var(--ink); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: none; cursor: pointer; }
+.settings-scrim { position: fixed; z-index: 8; inset: 0; background: rgba(18, 22, 19, .3); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 300ms ease, visibility 300ms; }
+.settings-scrim.is-open { opacity: 1; visibility: visible; pointer-events: auto; }
+.zen-dialog {
+  position: fixed;
+  z-index: 9;
+  top: 50%;
+  left: 50%;
+  width: min(620px, calc(100% - 28px));
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: calc(var(--radius) + 8px);
+  background: var(--paper-glass);
+  box-shadow: 0 28px 90px rgba(20, 24, 20, .28), inset 0 1px 0 rgba(255,255,255,.28);
+  backdrop-filter: blur(24px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, calc(-50% + 18px));
+  transition: opacity 300ms ease, transform 420ms cubic-bezier(.16,1,.3,1), visibility 300ms;
+}
+.zen-dialog.is-open { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, -50%); }
+.dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.dialog-header .panel-kicker { margin-bottom: 8px; }
+.dialog-header h2 { margin: 0; font-size: clamp(2rem, 5vw, 3.5rem); line-height: .94; letter-spacing: -.055em; }
+.theme-picker { margin: 28px 0 0; padding: 20px 0 0; border: 0; border-top: 1px solid var(--line); }
+.theme-picker legend { margin-bottom: 10px; padding: 0; font-size: .76rem; font-weight: 800; }
+.theme-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.theme-options button { min-height: 44px; background: rgba(255,255,255,.2); color: var(--ink-soft); font-weight: 750; }
+.theme-options button[aria-pressed="true"] { border-color: var(--control); background: var(--control); color: var(--control-ink); }
+.customize-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 10px; margin-top: 20px; }
+.customize-grid label { display: grid; gap: 6px; color: var(--ink-soft); font-size: .66rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.customize-grid label:last-child { grid-column: 1 / -1; }
+.customize-grid select { width: 100%; height: 44px; padding: 0 34px 0 12px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,.2); color: var(--ink); font-size: .78rem; font-weight: 700; letter-spacing: 0; text-transform: none; cursor: pointer; }
+.dialog-action { width: 100%; margin-top: 22px; }
 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .opening[aria-hidden="true"] { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -297,13 +327,14 @@ h1 {
   .pace-options { grid-template-columns: 1fr; }
   .pace-options button { min-height: 49px; }
   .opening-actions { display: grid; grid-template-columns: 1fr 1fr; margin-top: 16px; }
+  #zen-customize-home { grid-column: 1 / -1; }
   .opening-actions .button { padding: 0 12px; }
   .stop-button { width: 104px; height: 104px; }
-  .zen-studio { bottom: max(10px, env(safe-area-inset-bottom)); grid-template-columns: 1fr; gap: 5px; width: calc(100% - 20px); }
+  .zen-studio { bottom: max(10px, env(safe-area-inset-bottom)); width: calc(100% - 20px); }
   .zen-actions { justify-content: stretch; }
   .quiet-button { flex: 1 1 auto; padding: 0 7px; font-size: 0.69rem; }
-  .zen-tuners { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 108px; overflow-x: auto; padding: 2px; scrollbar-width: none; }
-  .zen-tuners::-webkit-scrollbar { display: none; }
+  .zen-dialog { width: calc(100% - 20px); max-height: calc(100dvh - 20px); padding: 22px 18px 18px; }
+  .customize-grid { grid-template-columns: 1fr 1fr; }
   .game-dock { bottom: max(10px, env(safe-area-inset-bottom)); width: calc(100% - 20px); }
   .dock-inner { gap: 10px; min-height: 84px; padding: 11px 11px 11px 15px; border-radius: calc(var(--radius) + 3px); }
   .dock-question .panel-kicker { display: none; }
@@ -324,7 +355,7 @@ h1 {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #20231f;
     --paper-glass: rgba(35, 38, 33, 0.9);
     --ink: #f0ede3;
@@ -335,14 +366,36 @@ h1 {
     --focus: #75b9df;
     --shadow: rgba(0,0,0,0.28);
   }
-  .wash { background: radial-gradient(circle at 24% 50%, rgba(32,35,31,0.98) 0 16%, rgba(32,35,31,0.57) 36%, transparent 69%); }
-  .guess-row input, .zen-tuners select { background: rgba(255,255,255,0.06); }
+  :root:not([data-theme="light"]) .wash { background: radial-gradient(circle at 24% 50%, rgba(32,35,31,0.98) 0 16%, rgba(32,35,31,0.57) 36%, transparent 69%); }
+  :root:not([data-theme="light"]) .guess-row input,
+  :root:not([data-theme="light"]) .customize-grid select,
+  :root:not([data-theme="light"]) .theme-options button { background: rgba(255,255,255,0.06); }
+  :root:not([data-theme="light"]) .theme-options button[aria-pressed="true"] { background: var(--control); color: var(--control-ink); }
 }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #20231f;
+  --paper-glass: rgba(35, 38, 33, 0.9);
+  --ink: #f0ede3;
+  --ink-soft: #b9bcb3;
+  --line: rgba(240,237,227,0.18);
+  --control: #d7d5c9;
+  --control-ink: #20231f;
+  --focus: #75b9df;
+  --shadow: rgba(0,0,0,0.28);
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] .wash { background: radial-gradient(circle at 24% 50%, rgba(32,35,31,0.98) 0 16%, rgba(32,35,31,0.57) 36%, transparent 69%); }
+:root[data-theme="dark"] .guess-row input,
+:root[data-theme="dark"] .customize-grid select,
+:root[data-theme="dark"] .theme-options button { background: rgba(255,255,255,0.06); }
+:root[data-theme="dark"] .theme-options button[aria-pressed="true"] { background: var(--control); color: var(--control-ink); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .button-secondary, .pace-options, .dock-inner, .zen-studio, .game-setup-card { background: var(--paper); backdrop-filter: none; }
+  .button-secondary, .pace-options, .dock-inner, .zen-studio, .game-setup-card, .zen-dialog { background: var(--paper); backdrop-filter: none; }
 }

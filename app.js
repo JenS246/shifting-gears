@@ -1,9 +1,12 @@
-import { GearEngine } from "./gear-engine.js?v=20260917-1";
+import { GearEngine } from "./gear-engine.js?v=20260917-3";
 
 const $ = (selector) => document.querySelector(selector);
 const app = $("#app");
 const opening = $("#opening");
 const gameSetup = $("#game-setup");
+const zenDialog = $("#zen-dialog");
+const settingsScrim = $("#settings-scrim");
+const zenDialogAction = $("#zen-dialog-action");
 const modeLabel = $("#mode-label");
 const guessPanel = $("#guess-panel");
 const resultPanel = $("#result-panel");
@@ -26,6 +29,8 @@ const state = {
   closest: null,
   exact: 0,
   gamePace: "medium",
+  theme: "auto",
+  dialogTrigger: null,
   settings: { palette: "mixed", speed: "slow", density: "balanced", direction: "organic", variety: "mixed" }
 };
 
@@ -73,6 +78,43 @@ function closePanels() {
     panel.setAttribute("aria-hidden", "true");
   });
   gameSetup.setAttribute("aria-hidden", "true");
+  closeZenDialog(false);
+}
+
+function resolvedDarkTheme(theme = state.theme) {
+  return theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+}
+
+function applyTheme(theme) {
+  state.theme = theme;
+  document.documentElement.dataset.theme = theme;
+  engine.setTheme(theme);
+  document.querySelector('meta[name="theme-color"]').content = resolvedDarkTheme(theme) ? "#20231f" : "#f2efe7";
+  document.querySelectorAll("[data-theme-choice]").forEach((option) => {
+    option.setAttribute("aria-pressed", String(option.dataset.themeChoice === theme));
+  });
+}
+
+function openZenDialog(trigger) {
+  state.dialogTrigger = trigger;
+  zenDialogAction.textContent = state.mode === "zen" ? "Done" : "Start Zen";
+  zenDialog.classList.add("is-open");
+  zenDialog.setAttribute("aria-hidden", "false");
+  settingsScrim.classList.add("is-open");
+  settingsScrim.setAttribute("aria-hidden", "false");
+  trigger?.setAttribute("aria-expanded", "true");
+  requestAnimationFrame(() => zenDialog.querySelector("[data-theme-choice][aria-pressed='true']")?.focus?.());
+}
+
+function closeZenDialog(restoreFocus = true) {
+  const wasOpen = zenDialog.classList.contains("is-open");
+  zenDialog.classList.remove("is-open");
+  zenDialog.setAttribute("aria-hidden", "true");
+  settingsScrim.classList.remove("is-open");
+  settingsScrim.setAttribute("aria-hidden", "true");
+  state.dialogTrigger?.setAttribute("aria-expanded", "false");
+  if (wasOpen && restoreFocus) state.dialogTrigger?.focus?.();
+  state.dialogTrigger = null;
 }
 
 function openGameSetup() {
@@ -205,6 +247,11 @@ function updateSetting(event) {
   engine.setSettings({ [setting]: value });
 }
 
+function updateTheme(event) {
+  const button = event.target.closest("[data-theme-choice]");
+  if (button) applyTheme(button.dataset.themeChoice);
+}
+
 function updateGamePace(event) {
   const button = event.target.closest("button[data-game-pace]");
   if (!button) return;
@@ -217,6 +264,15 @@ function updateGamePace(event) {
 $("#game-start").addEventListener("click", openGameSetup);
 $("#game-confirm").addEventListener("click", () => startMode("game"));
 $("#zen-start").addEventListener("click", () => startMode("zen"));
+$("#zen-customize-home").addEventListener("click", (event) => openZenDialog(event.currentTarget));
+$("#zen-customize").addEventListener("click", (event) => openZenDialog(event.currentTarget));
+$("#zen-dialog-close").addEventListener("click", () => closeZenDialog());
+settingsScrim.addEventListener("click", () => closeZenDialog());
+zenDialogAction.addEventListener("click", () => {
+  const shouldStart = state.mode !== "zen";
+  closeZenDialog(false);
+  if (shouldStart) startMode("zen");
+});
 $("#home-button").addEventListener("click", goHome);
 $("#stop-button").addEventListener("click", openGuess);
 $("#guess-form").addEventListener("submit", submitGuess);
@@ -225,11 +281,13 @@ countButton.addEventListener("click", toggleCount);
 pauseButton.addEventListener("click", togglePause);
 $("#reset-button").addEventListener("click", () => { engine.reset(); state.paused = false; pauseButton.textContent = "Pause"; });
 soundButton.addEventListener("click", toggleSound);
-$("#zen-studio").addEventListener("change", updateSetting);
+zenDialog.addEventListener("change", updateSetting);
+zenDialog.addEventListener("click", updateTheme);
 document.querySelector(".pace-options").addEventListener("click", updateGamePace);
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && app.dataset.screen === "game-setup") goHome();
+  if (event.key === "Escape" && zenDialog.classList.contains("is-open")) closeZenDialog();
+  else if (event.key === "Escape" && app.dataset.screen === "game-setup") goHome();
 });
 
 document.addEventListener("visibilitychange", () => {
@@ -237,5 +295,10 @@ document.addEventListener("visibilitychange", () => {
   if (!document.hidden && state.mode === "zen" && !state.paused) engine.targetMotion = 1;
 });
 
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (state.theme === "auto") applyTheme("auto");
+});
+
 engine.start();
+applyTheme("auto");
 engine.startOpening();

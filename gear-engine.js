@@ -197,6 +197,10 @@ export class GearEngine {
 
   setMode(mode) { this.mode = mode; }
 
+  setTheme(theme) {
+    this.darkMode = theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+
   setGamePace(pace) {
     this.gamePace = GAME_PACES[pace] ? pace : "medium";
     if (this.mode === "game") this.scheduleNextGrowth(performance.now(), null, true);

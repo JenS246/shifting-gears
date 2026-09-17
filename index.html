@@ -7,8 +7,8 @@
     <meta name="description" content="A calming generative gear machine and counting game." />
     <title>Shifting Gears</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20260917-1" />
-    <script type="module" src="app.js?v=20260917-1"></script>
+    <link rel="stylesheet" href="styles.css?v=20260917-3" />
+    <script type="module" src="app.js?v=20260917-3"></script>
   </head>
   <body>
     <main id="app" class="app" data-screen="opening">
@@ -28,6 +28,7 @@
           <div class="opening-actions">
             <button class="button button-primary" id="game-start">Game Mode</button>
             <button class="button button-secondary" id="zen-start">Zen Mode</button>
+            <button class="button button-secondary" id="zen-customize-home" aria-controls="zen-dialog" aria-expanded="false">Customize Zen</button>
           </div>
         </div>
       </section>
@@ -106,13 +107,33 @@
         </div>
       </section>
 
-      <section class="zen-studio" id="zen-studio" aria-label="Zen mode controls and customization">
+      <section class="zen-studio" id="zen-studio" aria-label="Zen mode controls">
         <nav class="zen-actions" aria-label="Playback controls">
           <button class="quiet-button" id="pause-button">Pause</button>
+          <button class="quiet-button" id="zen-customize" aria-controls="zen-dialog" aria-expanded="false">Customize</button>
           <button class="quiet-button" id="reset-button">Reset</button>
           <button class="quiet-button sound-button" id="sound-button" aria-pressed="false">Sound off</button>
         </nav>
-        <div class="zen-tuners" aria-label="Customize the machine">
+      </section>
+
+      <div class="settings-scrim" id="settings-scrim" aria-hidden="true"></div>
+      <section class="zen-dialog" id="zen-dialog" role="dialog" aria-modal="true" aria-labelledby="zen-dialog-title" aria-hidden="true">
+        <header class="dialog-header">
+          <div>
+            <p class="panel-kicker">Tune the machine</p>
+            <h2 id="zen-dialog-title">Customize Zen</h2>
+          </div>
+          <button class="quiet-button" id="zen-dialog-close" aria-label="Close Zen customization">Close</button>
+        </header>
+        <fieldset class="theme-picker">
+          <legend>Background</legend>
+          <div class="theme-options">
+            <button type="button" data-theme-choice="auto" aria-pressed="true">Auto</button>
+            <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+            <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+          </div>
+        </fieldset>
+        <div class="customize-grid" aria-label="Customize the machine">
           <label>Palette
             <select data-setting="palette">
               <option value="mixed">Mixed</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="muted">Muted</option><option value="bright">Bright</option><option value="pastel">Pastel</option><option value="earthy">Earthy</option>
@@ -139,6 +160,7 @@
             </select>
           </label>
         </div>
+        <button class="button button-primary dialog-action" id="zen-dialog-action">Start Zen</button>
       </section>
 
       <p class="sr-only" id="live-result" aria-live="assertive"></p>
