@@ -73,6 +73,52 @@ h1 {
 
 .opening-line { margin: 30px 0 0; color: var(--ink-soft); font-size: clamp(1rem, 2vw, 1.25rem); }
 
+.pace-picker {
+  width: min(390px, 100%);
+  margin: 30px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.pace-picker legend {
+  margin-bottom: 9px;
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pace-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 5px);
+  background: var(--paper-glass);
+  backdrop-filter: blur(12px);
+}
+
+.pace-options button {
+  min-height: 55px;
+  padding: 8px 13px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, background-color 220ms ease, color 220ms ease;
+}
+
+.pace-options button:hover { transform: translateY(-1px); }
+.pace-options button:active { transform: translateY(1px) scale(0.98); }
+.pace-options button[aria-pressed="true"] { background: var(--control); color: var(--control-ink); }
+.pace-options span { display: block; font-weight: 800; }
+.pace-options small { display: block; margin-top: 2px; font-size: 0.66rem; opacity: 0.76; }
+
 .opening-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
 
 .button, .quiet-button, .close-button, .option-grid button {
@@ -254,7 +300,8 @@ h1 {
   .maker-mark { margin-bottom: 14px; }
   h1 { font-size: clamp(4rem, 21vw, 6.5rem); }
   .opening-line { margin-top: 22px; }
-  .opening-actions { display: grid; grid-template-columns: 1fr 1fr; margin-top: 26px; }
+  .pace-picker { margin-top: 22px; }
+  .opening-actions { display: grid; grid-template-columns: 1fr 1fr; margin-top: 16px; }
   .opening-actions .button { padding: 0 12px; }
   .stop-button { width: 104px; height: 104px; }
   .zen-controls { width: calc(100% - 24px); justify-content: stretch; }
@@ -301,5 +348,5 @@ h1 {
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .button-secondary, .dock-inner, .zen-controls, .drawer { background: var(--paper); backdrop-filter: none; }
+  .button-secondary, .pace-options, .dock-inner, .zen-controls, .drawer { background: var(--paper); backdrop-filter: none; }
 }

@@ -25,7 +25,11 @@ if (!engine.includes("updateCamera(dt)")) throw new Error("Zen camera reframing 
 if (!engine.includes("bottomReserve")) throw new Error("Game control clearance is missing");
 if (!engine.includes("overlapConnections")) throw new Error("Controlled gear overlap scoring is missing");
 if (!engine.includes("relaxed: true")) throw new Error("Crowded-field placement fallback is missing");
-if (!engine.includes('this.mode === "game" ? 650')) throw new Error("Game challenge cadence is missing");
+if (!engine.includes('this.mode === "game" ? 540')) throw new Error("Game challenge cadence is missing");
+if (!html.includes('data-game-pace="regular"') || !html.includes('data-game-pace="fast"')) throw new Error("Game speed choices are missing");
+if (!engine.includes("GAME_PACES")) throw new Error("Game pace model is missing");
+if (!engine.includes("gameAcceleration")) throw new Error("Progressive game acceleration is missing");
+if (!engine.includes("gameMeshDepth")) throw new Error("Pace-aware gear overlap is missing");
 if (html.includes("—") || html.includes("–")) throw new Error("Disallowed dash character found in visible copy");
 
 console.log("Static verification passed.");

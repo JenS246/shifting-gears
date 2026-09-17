@@ -25,6 +25,19 @@
           <p class="maker-mark">A kinetic counting game</p>
           <h1 id="opening-title">Shifting<br />Gears</h1>
           <p class="opening-line">Watch the machine build itself.</p>
+          <fieldset class="pace-picker">
+            <legend>Game speed</legend>
+            <div class="pace-options">
+              <button type="button" data-game-pace="regular" aria-pressed="true">
+                <span>Regular</span>
+                <small>Builds up quickly</small>
+              </button>
+              <button type="button" data-game-pace="fast" aria-pressed="false">
+                <span>Faster</span>
+                <small>Gets crowded fast</small>
+              </button>
+            </div>
+          </fieldset>
           <div class="opening-actions">
             <button class="button button-primary" id="game-start">Game Mode</button>
             <button class="button button-secondary" id="zen-start">Zen Mode</button>

@@ -27,6 +27,7 @@ const state = {
   audioContext: null,
   closest: null,
   exact: 0,
+  gamePace: "regular",
   settings: { palette: "mixed", speed: "slow", density: "balanced", direction: "organic", variety: "mixed" }
 };
 
@@ -85,12 +86,13 @@ function startMode(mode) {
   countButton.setAttribute("aria-pressed", "false");
   engine.setCountOverlay(false);
   engine.setMode(mode);
+  engine.setGamePace(state.gamePace);
   engine.setSettings(state.settings);
   engine.reset();
   closePanels();
   pauseButton.textContent = "Pause";
   liveResult.textContent = "";
-  modeLabel.textContent = mode === "game" ? "Game mode" : "Zen mode";
+  modeLabel.textContent = mode === "game" ? `${state.gamePace === "fast" ? "Faster" : "Regular"} game` : "Zen mode";
   canvas.setAttribute("aria-label", mode === "game" ? "A growing mechanical composition. The number of gears is hidden until you make a guess." : "A growing mechanical composition with one visible gear.");
   setScreen(mode === "game" ? "game-running" : "zen");
 }
@@ -216,6 +218,15 @@ function updateSetting(event) {
   engine.setSettings({ [setting]: value });
 }
 
+function updateGamePace(event) {
+  const button = event.target.closest("button[data-game-pace]");
+  if (!button) return;
+  state.gamePace = button.dataset.gamePace;
+  document.querySelectorAll("[data-game-pace]").forEach((option) => {
+    option.setAttribute("aria-pressed", String(option === button));
+  });
+}
+
 $("#game-start").addEventListener("click", () => startMode("game"));
 $("#zen-start").addEventListener("click", () => startMode("zen"));
 $("#home-button").addEventListener("click", goHome);
@@ -230,6 +241,7 @@ $("#close-drawer").addEventListener("click", closeDrawer);
 drawerScrim.addEventListener("click", closeDrawer);
 soundButton.addEventListener("click", toggleSound);
 drawer.addEventListener("click", updateSetting);
+document.querySelector(".pace-options").addEventListener("click", updateGamePace);
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && drawer.classList.contains("is-open")) closeDrawer();

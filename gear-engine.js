@@ -17,6 +17,11 @@ const SPEEDS = {
   lively: { rotation: 1.32, growth: 0.62 }
 };
 
+const GAME_PACES = {
+  regular: { growth: 1, rotation: 0.92, minimumCadence: 0.64, meshDepth: 0.31 },
+  fast: { growth: 0.62, rotation: 1.14, minimumCadence: 0.5, meshDepth: 0.37 }
+};
+
 function randomBetween(min, max) { return min + Math.random() * (max - min); }
 function choose(items) { return items[Math.floor(Math.random() * items.length)]; }
 function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
@@ -145,6 +150,7 @@ export class GearEngine {
     this.targetMotion = 1;
     this.stopResponse = 5.1;
     this.mode = "opening";
+    this.gamePace = "regular";
     this.sequence = 0;
     this.countOverlay = false;
     this.countOverlayStarted = 0;
@@ -185,6 +191,11 @@ export class GearEngine {
   }
 
   setMode(mode) { this.mode = mode; }
+
+  setGamePace(pace) {
+    this.gamePace = GAME_PACES[pace] ? pace : "regular";
+    if (this.mode === "game") this.scheduleNextGrowth(performance.now(), null, true);
+  }
 
   setSettings(next) {
     const paletteChanged = next.palette && next.palette !== this.settings.palette;
@@ -360,7 +371,7 @@ export class GearEngine {
       const distance = Math.hypot(x - other.x, y - other.y);
       const sum = radius + other.radius;
       const ratio = distance / sum;
-      const baseMinimum = this.mode === "game" ? 0.7 : (this.settings.density === "dense" ? 0.61 : this.settings.density === "sparse" ? 0.74 : 0.66);
+      const baseMinimum = this.mode === "game" ? 0.62 : (this.settings.density === "dense" ? 0.61 : this.settings.density === "sparse" ? 0.74 : 0.66);
       const minimum = relaxed ? baseMinimum - 0.09 : baseMinimum;
       const larger = Math.max(radius, other.radius);
       const smaller = Math.min(radius, other.radius);
@@ -412,7 +423,10 @@ export class GearEngine {
         let radius = this.nextRadius(parent, pass.forceSmall ? "fill" : strategy);
         if (pass.forceSmall) radius *= randomBetween(0.72, 0.94);
         const angle = this.preferredAngle(parent, pass.forceSmall ? "fill" : strategy);
-        const meshDepth = pass.relaxed ? 0.28 : (this.mode === "game" ? 0.2 : 0.23);
+        const gameMeshDepth = GAME_PACES[this.gamePace].meshDepth;
+        const meshDepth = pass.relaxed
+          ? (this.mode === "game" ? gameMeshDepth + 0.07 : 0.35)
+          : (this.mode === "game" ? gameMeshDepth : 0.3);
         const distance = parent.radius + radius - Math.min(parent.radius, radius) * meshDepth;
         const x = parent.x + Math.cos(angle) * distance;
         const y = parent.y + Math.sin(angle) * distance;
@@ -441,13 +455,18 @@ export class GearEngine {
   }
 
   scheduleNextGrowth(now, gear, immediate = false) {
-    const base = this.mode === "opening" ? 1050 : this.mode === "game" ? 650 : 790;
+    const base = this.mode === "opening" ? 1050 : this.mode === "game" ? 540 : 790;
     const densityFactor = this.settings.density === "sparse" ? 1.62 : this.settings.density === "dense" ? 0.7 : 1;
     let cadence = randomBetween(0.82, 1.22);
     const averageRadius = Math.min(this.width, this.height) * 0.075;
     if (gear && gear.radius > averageRadius * 1.55) cadence *= 1.52;
     if (gear && gear.radius < averageRadius * 0.58 && Math.random() < 0.34) cadence *= 0.32;
-    this.nextGrowthAt = now + (immediate ? 80 : base * SPEEDS[this.settings.speed].growth * densityFactor * cadence);
+    const pace = GAME_PACES[this.gamePace];
+    const gameAcceleration = this.mode === "game"
+      ? Math.max(pace.minimumCadence, 1 - Math.max(0, this.gears.length - 3) * 0.014)
+      : 1;
+    const speedFactor = this.mode === "game" ? pace.growth : SPEEDS[this.settings.speed].growth;
+    this.nextGrowthAt = now + (immediate ? 80 : base * speedFactor * densityFactor * cadence * gameAcceleration);
   }
 
   updateCamera(dt) {
@@ -488,7 +507,8 @@ export class GearEngine {
       const gear = this.addGear();
       this.scheduleNextGrowth(now, gear);
     }
-    const speedFactor = SPEEDS[this.settings.speed].rotation * (this.reducedMotion ? 0.16 : 1);
+    const rotationSpeed = this.mode === "game" ? GAME_PACES[this.gamePace].rotation : SPEEDS[this.settings.speed].rotation;
+    const speedFactor = rotationSpeed * (this.reducedMotion ? 0.16 : 1);
     for (const gear of this.gears) {
       gear.angle += gear.angularVelocity * speedFactor * this.motion * dt;
       if (gear.colorMix < 1) gear.colorMix = Math.min(1, gear.colorMix + dt * 0.58);
