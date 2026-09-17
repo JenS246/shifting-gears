@@ -1,4 +1,4 @@
-import { GearEngine } from "./gear-engine.js";
+import { GearEngine } from "./gear-engine.js?v=20260917-1";
 
 const $ = (selector) => document.querySelector(selector);
 const app = $("#app");

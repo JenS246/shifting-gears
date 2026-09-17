@@ -33,6 +33,7 @@ if (!engine.includes("gameMeshDepth")) throw new Error("Pace-aware gear overlap 
 if (!engine.includes("GOLDEN_ANGLE")) throw new Error("Multi-direction composition choreography is missing");
 if (!engine.includes("candidateSector")) throw new Error("Sector-balanced game growth is missing");
 if (!html.includes('select data-setting="palette"') || !html.includes('select data-setting="direction"')) throw new Error("Visible Zen customization is missing");
+if (!html.includes('styles.css?v=') || !html.includes('app.js?v=') || !app.includes('gear-engine.js?v=')) throw new Error("Cache-safe asset versioning is missing");
 if (html.includes("—") || html.includes("–")) throw new Error("Disallowed dash character found in visible copy");
 
 console.log("Static verification passed.");

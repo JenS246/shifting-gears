@@ -37,6 +37,8 @@ npm test
 
 The project is a dependency-free static site. Pushes to `main` run the GitHub Actions workflow in `.github/workflows/pages.yml`, verify the source, and deploy the repository root to GitHub Pages.
 
+Browser assets use a shared query-string release version in `index.html` and `app.js`. Bump it whenever HTML, CSS, or JavaScript must deploy atomically so returning players do not receive incompatible cached files.
+
 - Source: <https://github.com/JenS246/shifting-gears>
 - Live site: <https://jens246.github.io/shifting-gears/>
 
