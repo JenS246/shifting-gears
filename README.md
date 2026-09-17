@@ -4,11 +4,11 @@ Shifting Gears is a browser-based kinetic counting game and generative art toy. 
 
 ## How it works
 
-- Game Mode follows a simple watch, stop, guess, reveal, again loop. A shallow bottom dock keeps the frozen machine visible while the player counts.
+- Game Mode first asks the player to choose Slow, Medium, or Fast, then follows a watch, stop, guess, reveal, again loop. A shallow bottom dock keeps the frozen machine visible while the player counts.
 - Results stay attached to the artwork, and an optional numbered overlay lets the player verify every gear after guessing.
-- Zen Mode grows continuously to a much larger composition. A nearly imperceptible camera reframe follows expansion beyond the initial viewport.
+- Zen Mode grows continuously to a much larger composition. Palette, speed, density, direction, and variety stay visible in its control deck, and a nearly imperceptible camera reframe follows expansion beyond the initial viewport.
 - New gears are placed relative to an existing parent gear. Controlled overlap, bridge placement, and multi-gear contact scoring produce dense interlocking compositions in both modes.
-- Game Mode offers Regular and Faster speeds. Both accelerate as the machine grows, while Faster starts with a shorter cadence and higher rotation rate.
+- Game Mode uses golden-angle choreography, balanced spatial sectors, and centroid correction to create multidirectional arcs and branching silhouettes instead of drifting toward one edge.
 - Game Mode reserves the control area and uses deeper gear meshing plus a tighter small-gear fallback pass when the field gets crowded, so growth continues instead of stalling.
 - Connected gears alternate direction and use parent-derived tooth ratios. Placement also aligns tooth phase at the contact point.
 - Eight procedural interior variants, four tooth profiles, fine and chunky teeth, varied hubs, pinions, and anchor gears create stronger visual contrast.

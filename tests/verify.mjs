@@ -5,7 +5,7 @@ const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const engine = await readFile(new URL("../gear-engine.js", import.meta.url), "utf8");
 
-const requiredIds = ["gear-canvas", "game-start", "zen-start", "stop-button", "guess-form", "pause-button", "customize-drawer", "reset-button"];
+const requiredIds = ["gear-canvas", "game-start", "game-setup", "game-confirm", "zen-start", "stop-button", "guess-form", "pause-button", "zen-studio", "reset-button"];
 for (const id of requiredIds) {
   if (!html.includes(`id="${id}"`)) throw new Error(`Missing required UI element: ${id}`);
 }
@@ -26,10 +26,13 @@ if (!engine.includes("bottomReserve")) throw new Error("Game control clearance i
 if (!engine.includes("overlapConnections")) throw new Error("Controlled gear overlap scoring is missing");
 if (!engine.includes("relaxed: true")) throw new Error("Crowded-field placement fallback is missing");
 if (!engine.includes('this.mode === "game" ? 540')) throw new Error("Game challenge cadence is missing");
-if (!html.includes('data-game-pace="regular"') || !html.includes('data-game-pace="fast"')) throw new Error("Game speed choices are missing");
+if (!html.includes('data-game-pace="slow"') || !html.includes('data-game-pace="medium"') || !html.includes('data-game-pace="fast"')) throw new Error("Clear Game Mode speed choices are missing");
 if (!engine.includes("GAME_PACES")) throw new Error("Game pace model is missing");
 if (!engine.includes("gameAcceleration")) throw new Error("Progressive game acceleration is missing");
 if (!engine.includes("gameMeshDepth")) throw new Error("Pace-aware gear overlap is missing");
+if (!engine.includes("GOLDEN_ANGLE")) throw new Error("Multi-direction composition choreography is missing");
+if (!engine.includes("candidateSector")) throw new Error("Sector-balanced game growth is missing");
+if (!html.includes('select data-setting="palette"') || !html.includes('select data-setting="direction"')) throw new Error("Visible Zen customization is missing");
 if (html.includes("—") || html.includes("–")) throw new Error("Disallowed dash character found in visible copy");
 
 console.log("Static verification passed.");

@@ -3,6 +3,7 @@ import { GearEngine } from "./gear-engine.js";
 const $ = (selector) => document.querySelector(selector);
 const app = $("#app");
 const opening = $("#opening");
+const gameSetup = $("#game-setup");
 const modeLabel = $("#mode-label");
 const guessPanel = $("#guess-panel");
 const resultPanel = $("#result-panel");
@@ -10,9 +11,6 @@ const guessInput = $("#guess-input");
 const resultTitle = $("#result-title");
 const resultDetail = $("#result-detail");
 const liveResult = $("#live-result");
-const drawer = $("#customize-drawer");
-const drawerScrim = $("#drawer-scrim");
-const customizeButton = $("#customize-button");
 const pauseButton = $("#pause-button");
 const soundButton = $("#sound-button");
 const countButton = $("#count-button");
@@ -27,7 +25,7 @@ const state = {
   audioContext: null,
   closest: null,
   exact: 0,
-  gamePace: "regular",
+  gamePace: "medium",
   settings: { palette: "mixed", speed: "slow", density: "balanced", direction: "organic", variety: "mixed" }
 };
 
@@ -66,6 +64,7 @@ const engine = new GearEngine(canvas, {
 function setScreen(screen) {
   app.dataset.screen = screen;
   opening.setAttribute("aria-hidden", String(screen !== "opening"));
+  gameSetup.setAttribute("aria-hidden", String(screen !== "game-setup"));
 }
 
 function closePanels() {
@@ -73,7 +72,15 @@ function closePanels() {
     panel.classList.remove("is-open");
     panel.setAttribute("aria-hidden", "true");
   });
-  closeDrawer();
+  gameSetup.setAttribute("aria-hidden", "true");
+}
+
+function openGameSetup() {
+  state.mode = "opening";
+  closePanels();
+  modeLabel.textContent = "Choose game speed";
+  setScreen("game-setup");
+  document.querySelector(`[data-game-pace="${state.gamePace}"]`).focus();
 }
 
 function startMode(mode) {
@@ -92,7 +99,8 @@ function startMode(mode) {
   closePanels();
   pauseButton.textContent = "Pause";
   liveResult.textContent = "";
-  modeLabel.textContent = mode === "game" ? `${state.gamePace === "fast" ? "Faster" : "Regular"} game` : "Zen mode";
+  const paceName = state.gamePace.charAt(0).toUpperCase() + state.gamePace.slice(1);
+  modeLabel.textContent = mode === "game" ? `${paceName} game` : "Zen mode";
   canvas.setAttribute("aria-label", mode === "game" ? "A growing mechanical composition. The number of gears is hidden until you make a guess." : "A growing mechanical composition with one visible gear.");
   setScreen(mode === "game" ? "game-running" : "zen");
 }
@@ -181,25 +189,6 @@ function togglePause() {
   pauseButton.textContent = state.paused ? "Resume" : "Pause";
 }
 
-function openDrawer() {
-  drawer.classList.add("is-open");
-  drawer.setAttribute("aria-hidden", "false");
-  drawerScrim.classList.add("is-open");
-  drawerScrim.setAttribute("aria-hidden", "false");
-  customizeButton.setAttribute("aria-expanded", "true");
-  $("#close-drawer").focus();
-}
-
-function closeDrawer() {
-  const wasOpen = drawer.classList.contains("is-open");
-  drawer.classList.remove("is-open");
-  drawer.setAttribute("aria-hidden", "true");
-  drawerScrim.classList.remove("is-open");
-  drawerScrim.setAttribute("aria-hidden", "true");
-  customizeButton.setAttribute("aria-expanded", "false");
-  if (wasOpen && state.mode === "zen") customizeButton.focus();
-}
-
 function toggleSound() {
   state.sound = !state.sound;
   soundButton.textContent = state.sound ? "Sound on" : "Sound off";
@@ -208,12 +197,10 @@ function toggleSound() {
 }
 
 function updateSetting(event) {
-  const button = event.target.closest("button[data-value]");
-  if (!button) return;
-  const group = button.closest("[data-setting]");
-  const setting = group.dataset.setting;
-  const value = button.dataset.value;
-  group.querySelectorAll("button").forEach((option) => option.setAttribute("aria-pressed", String(option === button)));
+  const control = event.target.closest("select[data-setting]");
+  if (!control) return;
+  const setting = control.dataset.setting;
+  const value = control.value;
   state.settings[setting] = value;
   engine.setSettings({ [setting]: value });
 }
@@ -227,7 +214,8 @@ function updateGamePace(event) {
   });
 }
 
-$("#game-start").addEventListener("click", () => startMode("game"));
+$("#game-start").addEventListener("click", openGameSetup);
+$("#game-confirm").addEventListener("click", () => startMode("game"));
 $("#zen-start").addEventListener("click", () => startMode("zen"));
 $("#home-button").addEventListener("click", goHome);
 $("#stop-button").addEventListener("click", openGuess);
@@ -236,15 +224,12 @@ $("#again-button").addEventListener("click", () => startMode("game"));
 countButton.addEventListener("click", toggleCount);
 pauseButton.addEventListener("click", togglePause);
 $("#reset-button").addEventListener("click", () => { engine.reset(); state.paused = false; pauseButton.textContent = "Pause"; });
-customizeButton.addEventListener("click", openDrawer);
-$("#close-drawer").addEventListener("click", closeDrawer);
-drawerScrim.addEventListener("click", closeDrawer);
 soundButton.addEventListener("click", toggleSound);
-drawer.addEventListener("click", updateSetting);
+$("#zen-studio").addEventListener("change", updateSetting);
 document.querySelector(".pace-options").addEventListener("click", updateGamePace);
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && drawer.classList.contains("is-open")) closeDrawer();
+  if (event.key === "Escape" && app.dataset.screen === "game-setup") goHome();
 });
 
 document.addEventListener("visibilitychange", () => {

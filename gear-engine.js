@@ -18,14 +18,18 @@ const SPEEDS = {
 };
 
 const GAME_PACES = {
-  regular: { growth: 1, rotation: 0.92, minimumCadence: 0.64, meshDepth: 0.31 },
-  fast: { growth: 0.62, rotation: 1.14, minimumCadence: 0.5, meshDepth: 0.37 }
+  slow: { growth: 1.34, rotation: 0.72, minimumCadence: 0.76, meshDepth: 0.3 },
+  medium: { growth: 0.92, rotation: 0.96, minimumCadence: 0.62, meshDepth: 0.33 },
+  fast: { growth: 0.58, rotation: 1.2, minimumCadence: 0.48, meshDepth: 0.38 }
 };
+
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 function randomBetween(min, max) { return min + Math.random() * (max - min); }
 function choose(items) { return items[Math.floor(Math.random() * items.length)]; }
 function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
 function fraction(value) { return ((value % 1) + 1) % 1; }
+function angleDifference(a, b) { return Math.atan2(Math.sin(a - b), Math.cos(a - b)); }
 
 function hexToRgb(hex) {
   const value = Number.parseInt(hex.slice(1), 16);
@@ -150,7 +154,8 @@ export class GearEngine {
     this.targetMotion = 1;
     this.stopResponse = 5.1;
     this.mode = "opening";
-    this.gamePace = "regular";
+    this.gamePace = "medium";
+    this.compositionPhase = Math.random() * TAU;
     this.sequence = 0;
     this.countOverlay = false;
     this.countOverlayStarted = 0;
@@ -193,7 +198,7 @@ export class GearEngine {
   setMode(mode) { this.mode = mode; }
 
   setGamePace(pace) {
-    this.gamePace = GAME_PACES[pace] ? pace : "regular";
+    this.gamePace = GAME_PACES[pace] ? pace : "medium";
     if (this.mode === "game") this.scheduleNextGrowth(performance.now(), null, true);
   }
 
@@ -213,6 +218,7 @@ export class GearEngine {
     this.gears = [];
     this.pathCache.clear();
     this.sequence = 0;
+    this.compositionPhase = Math.random() * TAU;
     this.countOverlay = false;
     this.motion = 1;
     this.targetMotion = 1;
@@ -343,7 +349,18 @@ export class GearEngine {
       centerDistance: Math.hypot(gear.x - this.width / 2, gear.y - this.height / 2)
     }));
     let pool = withCounts;
-    if (strategy === "extend") pool = [...withCounts].sort((a, b) => b.centerDistance - a.centerDistance).slice(0, Math.max(4, Math.ceil(withCounts.length * 0.35)));
+    if (strategy === "extend" && this.mode === "game") {
+      const targetAngle = this.compositionPhase + this.gears.length * GOLDEN_ANGLE;
+      pool = [...withCounts].sort((a, b) => {
+        const aAngle = Math.atan2(a.gear.y - this.height * 0.45, a.gear.x - this.width / 2);
+        const bAngle = Math.atan2(b.gear.y - this.height * 0.45, b.gear.x - this.width / 2);
+        const aScore = a.centerDistance - Math.abs(angleDifference(aAngle, targetAngle)) * 70;
+        const bScore = b.centerDistance - Math.abs(angleDifference(bAngle, targetAngle)) * 70;
+        return bScore - aScore;
+      }).slice(0, Math.max(4, Math.ceil(withCounts.length * 0.28)));
+    } else if (strategy === "extend") {
+      pool = [...withCounts].sort((a, b) => b.centerDistance - a.centerDistance).slice(0, Math.max(4, Math.ceil(withCounts.length * 0.35)));
+    }
     if (strategy === "branch") pool = withCounts.filter((item) => item.children < 2);
     if (strategy === "fill" || strategy === "bridge") pool = withCounts.filter((item) => item.children < 4);
     if (!pool.length) pool = withCounts;
@@ -353,6 +370,14 @@ export class GearEngine {
   preferredAngle(parent, strategy) {
     const direction = this.settings.direction;
     const centerAngle = Math.atan2(parent.y - this.height / 2, parent.x - this.width / 2);
+    if (this.mode === "game") {
+      const patternAngle = this.compositionPhase + this.gears.length * GOLDEN_ANGLE;
+      const sway = Math.sin(this.gears.length * 0.72) * 0.34;
+      if (strategy === "extend") return patternAngle + sway + randomBetween(-0.42, 0.42);
+      if (strategy === "branch") return patternAngle + randomBetween(-0.78, 0.78);
+      if (strategy === "bridge") return patternAngle + Math.PI / 2 + randomBetween(-0.9, 0.9);
+      return Math.random() < 0.68 ? patternAngle + randomBetween(-0.7, 0.7) : randomBetween(0, TAU);
+    }
     if (direction === "upward") return -Math.PI / 2 + randomBetween(-0.7, 0.7);
     if (direction === "downward") return Math.PI / 2 + randomBetween(-0.7, 0.7);
     if (direction === "sideways") return (Math.random() > 0.5 ? 0 : Math.PI) + randomBetween(-0.52, 0.52);
@@ -403,6 +428,25 @@ export class GearEngine {
     const openSpace = Math.min(nearestGap / Math.max(radius, 1), 2.5);
     let score = Math.random() * 0.8 - occupancy * (this.settings.density === "sparse" ? 0.68 : 0.18);
     score += overlapConnections * (this.mode === "game" ? 1.65 : 1.35);
+    if (this.mode === "game") {
+      const centerX = this.width / 2;
+      const centerY = (50 + this.height - (this.width < 640 ? 108 : 118)) / 2;
+      const sectors = Array(8).fill(0);
+      for (const gear of this.gears) {
+        const angle = fraction(Math.atan2(gear.y - centerY, gear.x - centerX) / TAU);
+        sectors[Math.floor(angle * sectors.length) % sectors.length] += 1;
+      }
+      const candidateAngle = Math.atan2(y - centerY, x - centerX);
+      const candidateSector = Math.floor(fraction(candidateAngle / TAU) * sectors.length) % sectors.length;
+      const mostUsed = Math.max(...sectors);
+      score += (mostUsed - sectors[candidateSector]) * 1.35;
+      const patternAngle = this.compositionPhase + this.gears.length * GOLDEN_ANGLE;
+      score += (1 - Math.abs(angleDifference(candidateAngle, patternAngle)) / Math.PI) * 1.6;
+      const centroidX = (this.gears.reduce((sum, gear) => sum + gear.x, 0) + x) / (this.gears.length + 1);
+      const centroidY = (this.gears.reduce((sum, gear) => sum + gear.y, 0) + y) / (this.gears.length + 1);
+      const drift = Math.hypot((centroidX - centerX) / this.width, (centroidY - centerY) / this.height);
+      score -= drift * 12;
+    }
     if (strategy === "fill") score += nearConnections * 2.25 - openSpace;
     if (strategy === "bridge") score += nearConnections * 2.9;
     if (strategy === "extend") score += Math.hypot(x - this.width / 2, y - this.height / 2) / Math.max(this.width, this.height);

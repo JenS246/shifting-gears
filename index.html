@@ -25,23 +25,36 @@
           <p class="maker-mark">A kinetic counting game</p>
           <h1 id="opening-title">Shifting<br />Gears</h1>
           <p class="opening-line">Watch the machine build itself.</p>
-          <fieldset class="pace-picker">
-            <legend>Game speed</legend>
-            <div class="pace-options">
-              <button type="button" data-game-pace="regular" aria-pressed="true">
-                <span>Regular</span>
-                <small>Builds up quickly</small>
-              </button>
-              <button type="button" data-game-pace="fast" aria-pressed="false">
-                <span>Faster</span>
-                <small>Gets crowded fast</small>
-              </button>
-            </div>
-          </fieldset>
           <div class="opening-actions">
             <button class="button button-primary" id="game-start">Game Mode</button>
             <button class="button button-secondary" id="zen-start">Zen Mode</button>
           </div>
+        </div>
+      </section>
+
+      <section class="game-setup" id="game-setup" aria-labelledby="game-setup-title" aria-hidden="true">
+        <div class="game-setup-card">
+          <p class="panel-kicker">Game Mode</p>
+          <h2 id="game-setup-title">How fast should it build?</h2>
+          <p class="setup-copy">The machine gets harder to count the longer you let it run.</p>
+          <fieldset class="pace-picker">
+            <legend>Choose a speed</legend>
+            <div class="pace-options">
+              <button type="button" data-game-pace="slow" aria-pressed="false">
+                <span>Slow</span>
+                <small>Take in every turn</small>
+              </button>
+              <button type="button" data-game-pace="medium" aria-pressed="true">
+                <span>Medium</span>
+                <small>A balanced challenge</small>
+              </button>
+              <button type="button" data-game-pace="fast" aria-pressed="false">
+                <span>Fast</span>
+                <small>Dense in seconds</small>
+              </button>
+            </div>
+          </fieldset>
+          <button class="button button-primary setup-start" id="game-confirm">Start the machine</button>
         </div>
       </section>
 
@@ -93,75 +106,40 @@
         </div>
       </section>
 
-      <nav class="zen-controls" id="zen-controls" aria-label="Zen mode controls">
-        <button class="quiet-button" id="pause-button">Pause</button>
-        <button class="quiet-button" id="customize-button" aria-controls="customize-drawer" aria-expanded="false">Customize</button>
-        <button class="quiet-button" id="reset-button">Reset</button>
-        <button class="quiet-button sound-button" id="sound-button" aria-pressed="false">Sound off</button>
-      </nav>
-
-      <div class="drawer-scrim" id="drawer-scrim" aria-hidden="true"></div>
-      <aside class="drawer" id="customize-drawer" aria-labelledby="drawer-title" aria-hidden="true">
-        <div class="drawer-header">
-          <div>
-            <p class="panel-kicker">Tune the machine</p>
-            <h2 id="drawer-title">Customize</h2>
-          </div>
-          <button class="close-button" id="close-drawer" aria-label="Close customize panel">Close</button>
+      <section class="zen-studio" id="zen-studio" aria-label="Zen mode controls and customization">
+        <nav class="zen-actions" aria-label="Playback controls">
+          <button class="quiet-button" id="pause-button">Pause</button>
+          <button class="quiet-button" id="reset-button">Reset</button>
+          <button class="quiet-button sound-button" id="sound-button" aria-pressed="false">Sound off</button>
+        </nav>
+        <div class="zen-tuners" aria-label="Customize the machine">
+          <label>Palette
+            <select data-setting="palette">
+              <option value="mixed">Mixed</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="muted">Muted</option><option value="bright">Bright</option><option value="pastel">Pastel</option><option value="earthy">Earthy</option>
+            </select>
+          </label>
+          <label>Speed
+            <select data-setting="speed">
+              <option value="very-slow">Very slow</option><option value="slow" selected>Slow</option><option value="medium">Medium</option><option value="lively">Lively</option>
+            </select>
+          </label>
+          <label>Density
+            <select data-setting="density">
+              <option value="sparse">Sparse</option><option value="balanced" selected>Balanced</option><option value="dense">Dense</option>
+            </select>
+          </label>
+          <label>Direction
+            <select data-setting="direction">
+              <option value="center">Center out</option><option value="upward">Upward</option><option value="downward">Downward</option><option value="sideways">Sideways</option><option value="organic" selected>Organic</option>
+            </select>
+          </label>
+          <label>Variety
+            <select data-setting="variety">
+              <option value="simple">Simple</option><option value="mixed" selected>Mixed</option><option value="wild">Wild</option>
+            </select>
+          </label>
         </div>
-
-        <fieldset>
-          <legend>Palette</legend>
-          <div class="option-grid palette-options" data-setting="palette">
-            <button type="button" data-value="mixed" aria-pressed="true"><span class="swatch" aria-hidden="true"></span>Mixed</button>
-            <button type="button" data-value="warm" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Warm</button>
-            <button type="button" data-value="cool" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Cool</button>
-            <button type="button" data-value="muted" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Muted</button>
-            <button type="button" data-value="bright" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Bright</button>
-            <button type="button" data-value="pastel" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Pastel</button>
-            <button type="button" data-value="earthy" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Earthy</button>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Speed</legend>
-          <div class="option-grid four-options" data-setting="speed">
-            <button type="button" data-value="very-slow" aria-pressed="false">Very slow</button>
-            <button type="button" data-value="slow" aria-pressed="true">Slow</button>
-            <button type="button" data-value="medium" aria-pressed="false">Medium</button>
-            <button type="button" data-value="lively" aria-pressed="false">Lively</button>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Density</legend>
-          <div class="option-grid" data-setting="density">
-            <button type="button" data-value="sparse" aria-pressed="false">Sparse</button>
-            <button type="button" data-value="balanced" aria-pressed="true">Balanced</button>
-            <button type="button" data-value="dense" aria-pressed="false">Dense</button>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Growth direction</legend>
-          <div class="option-grid direction-options" data-setting="direction">
-            <button type="button" data-value="center" aria-pressed="false">Center out</button>
-            <button type="button" data-value="upward" aria-pressed="false">Upward</button>
-            <button type="button" data-value="downward" aria-pressed="false">Downward</button>
-            <button type="button" data-value="sideways" aria-pressed="false">Sideways</button>
-            <button type="button" data-value="organic" aria-pressed="true">Organic</button>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Gear variety</legend>
-          <div class="option-grid" data-setting="variety">
-            <button type="button" data-value="simple" aria-pressed="false">Simple</button>
-            <button type="button" data-value="mixed" aria-pressed="true">Mixed</button>
-            <button type="button" data-value="wild" aria-pressed="false">Wild</button>
-          </div>
-        </fieldset>
-      </aside>
+      </section>
 
       <p class="sr-only" id="live-result" aria-live="assertive"></p>
     </main>
