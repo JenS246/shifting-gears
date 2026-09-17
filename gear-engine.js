@@ -313,9 +313,15 @@ export class GearEngine {
     const roll = Math.random();
     if (this.settings.density === "dense" && roll < 0.42) return "fill";
     if (this.settings.density === "sparse" && roll < 0.56) return "extend";
-    if (roll < 0.24) return "fill";
-    if (roll < 0.62) return "extend";
-    if (roll < 0.84) return "branch";
+    if (this.mode === "game") {
+      if (roll < 0.36) return "fill";
+      if (roll < 0.58) return "extend";
+      if (roll < 0.79) return "branch";
+      return "bridge";
+    }
+    if (roll < 0.3) return "fill";
+    if (roll < 0.61) return "extend";
+    if (roll < 0.82) return "branch";
     return "bridge";
   }
 
@@ -344,24 +350,31 @@ export class GearEngine {
     return randomBetween(0, TAU);
   }
 
-  candidateScore(candidate, strategy) {
+  candidateScore(candidate, strategy, relaxed = false) {
     const { x, y, radius, parent } = candidate;
     let nearestGap = Infinity;
     let nearConnections = 0;
+    let overlapConnections = 0;
     for (const other of this.gears) {
       if (other === parent) continue;
       const distance = Math.hypot(x - other.x, y - other.y);
       const sum = radius + other.radius;
       const ratio = distance / sum;
-      const minimum = this.mode === "game" ? 0.91 : (this.settings.density === "dense" ? 0.82 : 0.88);
+      const baseMinimum = this.mode === "game" ? 0.7 : (this.settings.density === "dense" ? 0.61 : this.settings.density === "sparse" ? 0.74 : 0.66);
+      const minimum = relaxed ? baseMinimum - 0.09 : baseMinimum;
+      const larger = Math.max(radius, other.radius);
+      const smaller = Math.min(radius, other.radius);
+      if (distance < larger - smaller * 0.42) return -Infinity;
       if (ratio < minimum) return -Infinity;
       nearestGap = Math.min(nearestGap, Math.abs(distance - sum));
-      if (ratio > 0.9 && ratio < 1.08) nearConnections += 1;
+      if (ratio > 0.64 && ratio < 1.09) nearConnections += 1;
+      if (ratio < 0.94) overlapConnections += 1;
     }
     if (this.mode === "game") {
-      const bottomReserve = this.width < 640 ? 126 : 142;
+      const bottomReserve = this.width < 640 ? 108 : 118;
       if (y + radius > this.height - bottomReserve) return -Infinity;
-      if (x + radius * 0.72 < 0 || x - radius * 0.72 > this.width || y + radius * 0.72 < 58) return -Infinity;
+      const edgeVisibility = relaxed ? 0.42 : 0.54;
+      if (x + radius * edgeVisibility < 0 || x - radius * edgeVisibility > this.width || y + radius * edgeVisibility < 50) return -Infinity;
     } else {
       const worldPaddingX = this.width * 0.72;
       const worldPaddingY = this.height * 0.62;
@@ -377,9 +390,10 @@ export class GearEngine {
       return count + (gx === cellX && gy === cellY ? 1 : 0);
     }, 0);
     const openSpace = Math.min(nearestGap / Math.max(radius, 1), 2.5);
-    let score = Math.random() * 0.8 - occupancy * (this.settings.density === "sparse" ? 0.8 : 0.34);
-    if (strategy === "fill") score += nearConnections * 2.1 - openSpace;
-    if (strategy === "bridge") score += nearConnections * 2.7;
+    let score = Math.random() * 0.8 - occupancy * (this.settings.density === "sparse" ? 0.68 : 0.18);
+    score += overlapConnections * (this.mode === "game" ? 1.65 : 1.35);
+    if (strategy === "fill") score += nearConnections * 2.25 - openSpace;
+    if (strategy === "bridge") score += nearConnections * 2.9;
     if (strategy === "extend") score += Math.hypot(x - this.width / 2, y - this.height / 2) / Math.max(this.width, this.height);
     if (strategy === "branch") score += occupancy === 0 ? 1.2 : 0;
     return score;
@@ -389,16 +403,24 @@ export class GearEngine {
     if (!this.gears.length) return this.addFirstGear();
     const strategy = this.chooseStrategy();
     let best = null;
-    for (let attempt = 0; attempt < 120; attempt += 1) {
-      const parent = this.chooseParent(strategy);
-      const radius = this.nextRadius(parent, strategy);
-      const angle = this.preferredAngle(parent, strategy);
-      const distance = parent.radius + radius - Math.min(parent.radius, radius) * 0.065;
-      const x = parent.x + Math.cos(angle) * distance;
-      const y = parent.y + Math.sin(angle) * distance;
-      const score = this.candidateScore({ x, y, radius, parent }, strategy);
-      if (!best || score > best.score) best = { x, y, radius, parent, meshAngle: angle, score };
-      if (score > (strategy === "bridge" ? 4.4 : 2.6)) break;
+    const passes = this.mode === "game"
+      ? [{ attempts: 180, relaxed: false, forceSmall: false }, { attempts: 260, relaxed: true, forceSmall: true }]
+      : [{ attempts: 150, relaxed: false, forceSmall: false }, { attempts: 180, relaxed: true, forceSmall: true }];
+    for (const pass of passes) {
+      for (let attempt = 0; attempt < pass.attempts; attempt += 1) {
+        const parent = this.chooseParent(pass.forceSmall ? "fill" : strategy);
+        let radius = this.nextRadius(parent, pass.forceSmall ? "fill" : strategy);
+        if (pass.forceSmall) radius *= randomBetween(0.72, 0.94);
+        const angle = this.preferredAngle(parent, pass.forceSmall ? "fill" : strategy);
+        const meshDepth = pass.relaxed ? 0.28 : (this.mode === "game" ? 0.2 : 0.23);
+        const distance = parent.radius + radius - Math.min(parent.radius, radius) * meshDepth;
+        const x = parent.x + Math.cos(angle) * distance;
+        const y = parent.y + Math.sin(angle) * distance;
+        const score = this.candidateScore({ x, y, radius, parent }, strategy, pass.relaxed);
+        if (!best || score > best.score) best = { x, y, radius, parent, meshAngle: angle, score };
+        if (score > (strategy === "bridge" ? 5.1 : 3.5)) break;
+      }
+      if (best && Number.isFinite(best.score)) break;
     }
     if (!best || !Number.isFinite(best.score)) return null;
     const gear = this.makeGear(best);
@@ -419,7 +441,7 @@ export class GearEngine {
   }
 
   scheduleNextGrowth(now, gear, immediate = false) {
-    const base = this.mode === "opening" ? 1050 : 790;
+    const base = this.mode === "opening" ? 1050 : this.mode === "game" ? 650 : 790;
     const densityFactor = this.settings.density === "sparse" ? 1.62 : this.settings.density === "dense" ? 0.7 : 1;
     let cadence = randomBetween(0.82, 1.22);
     const averageRadius = Math.min(this.width, this.height) * 0.075;

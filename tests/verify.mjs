@@ -23,6 +23,9 @@ if (!engine.includes("drawCountOverlay")) throw new Error("Numbered gear overlay
 if (!engine.includes('this.mode === "zen" ? 180')) throw new Error("Extended Zen growth limit is missing");
 if (!engine.includes("updateCamera(dt)")) throw new Error("Zen camera reframing is missing");
 if (!engine.includes("bottomReserve")) throw new Error("Game control clearance is missing");
+if (!engine.includes("overlapConnections")) throw new Error("Controlled gear overlap scoring is missing");
+if (!engine.includes("relaxed: true")) throw new Error("Crowded-field placement fallback is missing");
+if (!engine.includes('this.mode === "game" ? 650')) throw new Error("Game challenge cadence is missing");
 if (html.includes("—") || html.includes("–")) throw new Error("Disallowed dash character found in visible copy");
 
 console.log("Static verification passed.");
