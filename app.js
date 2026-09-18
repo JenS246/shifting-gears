@@ -1,4 +1,4 @@
-import { GearEngine } from "./gear-engine.js?v=20260917-3";
+import { GearEngine } from "./gear-engine.js?v=20260918-1";
 
 const $ = (selector) => document.querySelector(selector);
 const app = $("#app");
@@ -15,17 +15,14 @@ const resultTitle = $("#result-title");
 const resultDetail = $("#result-detail");
 const liveResult = $("#live-result");
 const pauseButton = $("#pause-button");
-const soundButton = $("#sound-button");
 const countButton = $("#count-button");
 const canvas = $("#gear-canvas");
 
 const state = {
   mode: "opening",
   paused: false,
-  sound: false,
   stopping: false,
   showingCount: false,
-  audioContext: null,
   closest: null,
   exact: 0,
   gamePace: "medium",
@@ -34,34 +31,8 @@ const state = {
   settings: { palette: "mixed", speed: "slow", density: "balanced", direction: "organic", variety: "mixed" }
 };
 
-function playClick(count) {
-  if (!state.sound || document.hidden) return;
-  if (!state.audioContext) state.audioContext = new AudioContext();
-  const context = state.audioContext;
-  const duration = 0.045 + Math.random() * 0.025;
-  const sampleCount = Math.ceil(context.sampleRate * duration);
-  const buffer = context.createBuffer(1, sampleCount, context.sampleRate);
-  const samples = buffer.getChannelData(0);
-  for (let i = 0; i < sampleCount; i += 1) {
-    const decay = Math.pow(1 - i / sampleCount, 3.5);
-    samples[i] = (Math.random() * 2 - 1) * decay;
-  }
-  const source = context.createBufferSource();
-  source.buffer = buffer;
-  const filter = context.createBiquadFilter();
-  filter.type = "bandpass";
-  filter.frequency.value = 620 + (count % 5) * 36 + Math.random() * 60;
-  filter.Q.value = 0.8;
-  const gain = context.createGain();
-  gain.gain.setValueAtTime(0.018, context.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
-  source.connect(filter).connect(gain).connect(context.destination);
-  source.start();
-}
-
 const engine = new GearEngine(canvas, {
   onGearAdded(_gear, count) {
-    playClick(count);
     if (state.mode === "zen") canvas.setAttribute("aria-label", `A growing mechanical composition with ${count} visible ${count === 1 ? "gear" : "gears"}.`);
   }
 });
@@ -221,7 +192,7 @@ function toggleCount() {
   countButton.setAttribute("aria-pressed", String(state.showingCount));
   const count = engine.gears.length;
   liveResult.textContent = state.showingCount
-    ? `${count} gears are highlighted and numbered.`
+    ? `Numbers are revealing in order across ${count} gears.`
     : "Gear numbers are hidden.";
 }
 
@@ -231,13 +202,6 @@ function togglePause() {
   pauseButton.textContent = state.paused ? "Resume" : "Pause";
 }
 
-function toggleSound() {
-  state.sound = !state.sound;
-  soundButton.textContent = state.sound ? "Sound on" : "Sound off";
-  soundButton.setAttribute("aria-pressed", String(state.sound));
-  if (state.sound) playClick(engine.gears.length);
-}
-
 function updateSetting(event) {
   const control = event.target.closest("select[data-setting]");
   if (!control) return;
@@ -245,6 +209,17 @@ function updateSetting(event) {
   const value = control.value;
   state.settings[setting] = value;
   engine.setSettings({ [setting]: value });
+}
+
+function updatePalette(event) {
+  const button = event.target.closest("[data-palette-choice]");
+  if (!button) return;
+  const palette = button.dataset.paletteChoice;
+  state.settings.palette = palette;
+  engine.setSettings({ palette });
+  document.querySelectorAll("[data-palette-choice]").forEach((option) => {
+    option.setAttribute("aria-pressed", String(option === button));
+  });
 }
 
 function updateTheme(event) {
@@ -280,9 +255,9 @@ $("#again-button").addEventListener("click", () => startMode("game"));
 countButton.addEventListener("click", toggleCount);
 pauseButton.addEventListener("click", togglePause);
 $("#reset-button").addEventListener("click", () => { engine.reset(); state.paused = false; pauseButton.textContent = "Pause"; });
-soundButton.addEventListener("click", toggleSound);
 zenDialog.addEventListener("change", updateSetting);
 zenDialog.addEventListener("click", updateTheme);
+zenDialog.addEventListener("click", updatePalette);
 document.querySelector(".pace-options").addEventListener("click", updateGamePace);
 
 document.addEventListener("keydown", (event) => {

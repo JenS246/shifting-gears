@@ -157,6 +157,8 @@ export class GearEngine {
     this.gamePace = "medium";
     this.compositionPhase = Math.random() * TAU;
     this.sequence = 0;
+    this.lastCadenceKind = "normal";
+    this.nextSizeIntent = null;
     this.countOverlay = false;
     this.countOverlayStarted = 0;
     this.camera = { x: 0, y: 0, scale: 1, targetX: 0, targetY: 0, targetScale: 1 };
@@ -223,6 +225,8 @@ export class GearEngine {
     this.pathCache.clear();
     this.sequence = 0;
     this.compositionPhase = Math.random() * TAU;
+    this.lastCadenceKind = "normal";
+    this.nextSizeIntent = null;
     this.countOverlay = false;
     this.motion = 1;
     this.targetMotion = 1;
@@ -264,13 +268,13 @@ export class GearEngine {
   designParameters(radius) {
     const variety = this.settings.variety;
     const maxVariant = variety === "simple" ? 3 : variety === "mixed" ? 6 : 8;
-    const fineChance = variety === "wild" ? 0.34 : 0.18;
-    const chunkyChance = variety === "simple" ? 0.12 : 0.24;
+    const fineChance = variety === "wild" ? 0.38 : 0.21;
+    const chunkyChance = variety === "simple" ? 0.13 : 0.27;
     const roll = Math.random();
     let toothPitch = randomBetween(5, 7.3);
     let toothStyle = 0;
-    if (roll < fineChance) { toothPitch = randomBetween(3.1, 4.2); toothStyle = 1; }
-    else if (roll < fineChance + chunkyChance) { toothPitch = randomBetween(7.4, 9.5); toothStyle = 2; }
+    if (roll < fineChance) { toothPitch = randomBetween(2.9, 4.15); toothStyle = 1; }
+    else if (roll < fineChance + chunkyChance) { toothPitch = randomBetween(7.5, 10.2); toothStyle = 2; }
     else toothStyle = Math.floor(Math.random() * (variety === "wild" ? 4 : 3));
     return {
       variant: Math.floor(Math.random() * maxVariant),
@@ -278,10 +282,13 @@ export class GearEngine {
       toothStyle,
       spokeCount: Math.floor(randomBetween(3, variety === "wild" ? 8 : 7)),
       holeCount: Math.floor(randomBetween(5, variety === "wild" ? 11 : 9)),
-      hubRatio: randomBetween(variety === "wild" ? 0.1 : 0.14, variety === "simple" ? 0.27 : 0.34),
-      ringRatio: randomBetween(variety === "wild" ? 0.34 : 0.39, variety === "wild" ? 0.61 : 0.5),
-      spokeWidth: randomBetween(0.07, variety === "wild" ? 0.16 : 0.13),
-      holeScale: randomBetween(0.075, variety === "wild" ? 0.145 : 0.115)
+      hubRatio: randomBetween(variety === "wild" ? 0.09 : 0.12, variety === "simple" ? 0.28 : 0.37),
+      ringRatio: randomBetween(variety === "wild" ? 0.31 : 0.37, variety === "wild" ? 0.64 : 0.53),
+      spokeWidth: randomBetween(variety === "wild" ? 0.052 : 0.064, variety === "wild" ? 0.175 : 0.145),
+      holeScale: randomBetween(variety === "wild" ? 0.062 : 0.072, variety === "wild" ? 0.158 : 0.126),
+      edgeHighlight: randomBetween(0.11, 0.25),
+      shadowLift: randomBetween(0.035, 0.075),
+      ringStrokeRatio: randomBetween(0.082, 0.138)
     };
   }
 
@@ -294,7 +301,8 @@ export class GearEngine {
       sequence: ++this.sequence,
       x, y, radius, ...design,
       color, fromColor: color, targetColor: color, colorMix: 1,
-      angle: randomBetween(0, TAU), angularVelocity: 0, direction: 1, depth: 0,
+      angle: randomBetween(0, TAU), angularVelocity: 0, direction: 1,
+      depth: parent ? clamp(parent.depth + randomBetween(-0.24, 0.24), -0.8, 0.8) : 0,
       parentId: parent?.id || null, born: performance.now(), entrance: Math.floor(Math.random() * 4),
       path: null, interior: null
     };
@@ -313,21 +321,24 @@ export class GearEngine {
     return gear;
   }
 
-  nextRadius(parent, strategy) {
+  nextRadius(parent, strategy, ignoreIntent = false) {
     const minDimension = Math.min(this.width, this.height);
     const mobile = this.width < 640;
     const variety = this.settings.variety;
-    const min = Math.max(mobile ? (this.mode === "game" ? 19 : 17) : 14, minDimension * 0.021);
-    const max = Math.min(mobile ? 72 : 122, minDimension * (mobile ? 0.135 : 0.17));
+    const game = this.mode === "game";
+    const min = Math.max(mobile ? (game ? 20 : 14) : (game ? 17 : 12), minDimension * (game ? 0.023 : 0.018));
+    const max = Math.min(mobile ? 74 : 128, minDimension * (mobile ? 0.14 : 0.178));
     const roll = Math.random();
-    const anchorChance = variety === "wild" ? 0.11 : 0.065;
-    const pinionChance = variety === "wild" ? 0.3 : 0.22;
+    const anchorChance = variety === "wild" ? 0.14 : 0.08;
+    const pinionChance = variety === "wild" ? 0.34 : 0.25;
     let radius;
-    if (strategy === "fill" || roll < pinionChance) radius = randomBetween(min, min * (variety === "wild" ? 1.45 : 1.7));
-    else if (roll < pinionChance + anchorChance) radius = randomBetween(max * 0.82, max * (this.mode === "game" ? 1.12 : 1.4));
+    if (!ignoreIntent && this.nextSizeIntent === "anchor") radius = randomBetween(max * 0.88, max * (game ? 1.06 : 1.48));
+    else if ((!ignoreIntent && this.nextSizeIntent === "pinion") || strategy === "fill" || roll < pinionChance) radius = randomBetween(min, min * (variety === "wild" ? 1.42 : 1.68));
+    else if (strategy === "bridge") radius = randomBetween(min * 2.1, max * 0.74);
+    else if (roll < pinionChance + anchorChance) radius = randomBetween(max * 0.84, max * (game ? 1.06 : 1.48));
     else radius = randomBetween(min * 1.65, max * 0.72);
     if (parent && radius / parent.radius > 0.75 && radius / parent.radius < 1.25 && Math.random() < 0.65) radius *= Math.random() > 0.5 ? 0.62 : 1.38;
-    return clamp(radius, min, max * (this.mode === "game" ? 1.12 : 1.4));
+    return clamp(radius, min, max * (game ? 1.06 : 1.48));
   }
 
   chooseStrategy() {
@@ -395,6 +406,7 @@ export class GearEngine {
     let nearestGap = Infinity;
     let nearConnections = 0;
     let overlapConnections = 0;
+    let similarNeighbors = 0;
     for (const other of this.gears) {
       if (other === parent) continue;
       const distance = Math.hypot(x - other.x, y - other.y);
@@ -409,11 +421,12 @@ export class GearEngine {
       nearestGap = Math.min(nearestGap, Math.abs(distance - sum));
       if (ratio > 0.64 && ratio < 1.09) nearConnections += 1;
       if (ratio < 0.94) overlapConnections += 1;
+      if (ratio < 1.08 && Math.min(radius, other.radius) / Math.max(radius, other.radius) > 0.74) similarNeighbors += 1;
     }
     if (this.mode === "game") {
-      const bottomReserve = this.width < 640 ? 108 : 118;
+      const bottomReserve = this.width < 640 ? 94 : 88;
       if (y + radius > this.height - bottomReserve) return -Infinity;
-      const edgeVisibility = relaxed ? 0.42 : 0.54;
+      const edgeVisibility = relaxed ? 0.28 : 0.18;
       if (x + radius * edgeVisibility < 0 || x - radius * edgeVisibility > this.width || y + radius * edgeVisibility < 50) return -Infinity;
     } else {
       const worldPaddingX = this.width * 0.72;
@@ -432,9 +445,12 @@ export class GearEngine {
     const openSpace = Math.min(nearestGap / Math.max(radius, 1), 2.5);
     let score = Math.random() * 0.8 - occupancy * (this.settings.density === "sparse" ? 0.68 : 0.18);
     score += overlapConnections * (this.mode === "game" ? 1.65 : 1.35);
+    score -= similarNeighbors * (this.mode === "game" ? 0.72 : 0.94);
+    const parentScaleContrast = Math.abs(Math.log(radius / Math.max(parent.radius, 1)));
+    score += Math.min(parentScaleContrast, 1.05) * (strategy === "bridge" ? 0.45 : 0.72);
     if (this.mode === "game") {
       const centerX = this.width / 2;
-      const centerY = (50 + this.height - (this.width < 640 ? 108 : 118)) / 2;
+      const centerY = (50 + this.height - (this.width < 640 ? 94 : 88)) / 2;
       const sectors = Array(8).fill(0);
       for (const gear of this.gears) {
         const angle = fraction(Math.atan2(gear.y - centerY, gear.x - centerX) / TAU);
@@ -468,7 +484,7 @@ export class GearEngine {
     for (const pass of passes) {
       for (let attempt = 0; attempt < pass.attempts; attempt += 1) {
         const parent = this.chooseParent(pass.forceSmall ? "fill" : strategy);
-        let radius = this.nextRadius(parent, pass.forceSmall ? "fill" : strategy);
+        let radius = this.nextRadius(parent, pass.forceSmall ? "fill" : strategy, pass.forceSmall);
         if (pass.forceSmall) radius *= randomBetween(0.72, 0.94);
         const angle = this.preferredAngle(parent, pass.forceSmall ? "fill" : strategy);
         const gameMeshDepth = GAME_PACES[this.gamePace].meshDepth;
@@ -487,6 +503,7 @@ export class GearEngine {
     if (!best || !Number.isFinite(best.score)) return null;
     const gear = this.makeGear(best);
     this.gears.push(gear);
+    this.nextSizeIntent = null;
     this.gears.sort((a, b) => a.depth - b.depth || b.radius - a.radius || a.sequence - b.sequence);
     this.onGearAdded?.(gear, this.gears.length);
     return gear;
@@ -505,10 +522,24 @@ export class GearEngine {
   scheduleNextGrowth(now, gear, immediate = false) {
     const base = this.mode === "opening" ? 1050 : this.mode === "game" ? 540 : 790;
     const densityFactor = this.settings.density === "sparse" ? 1.62 : this.settings.density === "dense" ? 0.7 : 1;
-    let cadence = randomBetween(0.82, 1.22);
+    const rhythmRoll = Math.random();
+    let cadence;
+    if (rhythmRoll < 0.17) {
+      cadence = randomBetween(1.48, 2.02);
+      this.lastCadenceKind = "rest";
+      this.nextSizeIntent = Math.random() < 0.58 ? "anchor" : null;
+    } else if (rhythmRoll < 0.39 && this.lastCadenceKind !== "quick") {
+      cadence = randomBetween(0.38, 0.62);
+      this.lastCadenceKind = "quick";
+      this.nextSizeIntent = Math.random() < 0.48 ? "pinion" : null;
+    } else {
+      cadence = randomBetween(0.82, 1.22);
+      this.lastCadenceKind = "normal";
+      this.nextSizeIntent = null;
+    }
     const averageRadius = Math.min(this.width, this.height) * 0.075;
-    if (gear && gear.radius > averageRadius * 1.55) cadence *= 1.52;
-    if (gear && gear.radius < averageRadius * 0.58 && Math.random() < 0.34) cadence *= 0.32;
+    if (gear && gear.radius > averageRadius * 1.55) cadence *= 1.28;
+    if (gear && gear.radius < averageRadius * 0.58 && Math.random() < 0.28) cadence *= 0.62;
     const pace = GAME_PACES[this.gamePace];
     const gameAcceleration = this.mode === "game"
       ? Math.max(pace.minimumCadence, 1 - Math.max(0, this.gears.length - 3) * 0.014)
@@ -533,7 +564,7 @@ export class GearEngine {
         minY = Math.min(minY, gear.y - gear.radius);
         maxY = Math.max(maxY, gear.y + gear.radius);
       }
-      this.camera.targetScale = clamp(Math.min((this.width * 0.88) / Math.max(1, maxX - minX), (this.height * 0.82) / Math.max(1, maxY - minY)), 0.43, 1);
+      this.camera.targetScale = clamp(Math.min((this.width * 0.94) / Math.max(1, maxX - minX), (this.height * 0.88) / Math.max(1, maxY - minY)), 0.43, 1);
       this.camera.targetX = (minX + maxX) / 2;
       this.camera.targetY = (minY + maxY) / 2;
     }
@@ -585,21 +616,26 @@ export class GearEngine {
     ctx.translate(gear.x + slide, gear.y);
     ctx.rotate(gear.angle);
     ctx.scale(scale, scale);
-    ctx.shadowColor = this.darkMode ? "rgba(0,0,0,.32)" : "rgba(76,62,38,.18)";
-    ctx.shadowBlur = gear.radius * 0.11;
-    ctx.shadowOffsetY = gear.radius * 0.05;
+    const depthLift = (gear.depth + 0.8) / 1.6;
+    ctx.shadowColor = this.darkMode
+      ? `rgba(0,0,0,${0.2 + depthLift * 0.12})`
+      : `rgba(76,62,38,${0.105 + depthLift * 0.085})`;
+    ctx.shadowBlur = gear.radius * (0.065 + depthLift * 0.055);
+    ctx.shadowOffsetY = gear.radius * (gear.shadowLift + depthLift * 0.018);
     ctx.fillStyle = fill;
     ctx.fill(gear.path);
     ctx.shadowColor = "transparent";
     ctx.globalCompositeOperation = "destination-out";
     ctx.fill(gear.interior, "evenodd");
     ctx.globalCompositeOperation = "source-over";
-    ctx.strokeStyle = this.darkMode ? "rgba(255,255,255,.15)" : "rgba(255,255,255,.44)";
-    ctx.lineWidth = Math.max(1, gear.radius * 0.017);
+    ctx.strokeStyle = this.darkMode
+      ? `rgba(255,255,255,${gear.edgeHighlight})`
+      : `rgba(255,255,255,${0.32 + gear.edgeHighlight})`;
+    ctx.lineWidth = Math.max(1, gear.radius * (0.013 + depthLift * 0.007));
     ctx.stroke(gear.path);
     if (gear.variant === 2 || gear.variant === 6) {
       ctx.strokeStyle = fill;
-      ctx.lineWidth = Math.max(3.5, gear.radius * (gear.variant === 6 ? 0.075 : 0.12));
+      ctx.lineWidth = Math.max(3.5, gear.radius * (gear.variant === 6 ? gear.ringStrokeRatio * 0.68 : gear.ringStrokeRatio));
       ctx.beginPath();
       ctx.arc(0, 0, gear.radius * (gear.variant === 6 ? 0.62 : 0.56), 0, TAU);
       ctx.stroke();
@@ -610,12 +646,23 @@ export class GearEngine {
   drawCountOverlay(ctx, now) {
     const elapsed = now - this.countOverlayStarted;
     const ordered = [...this.gears].sort((a, b) => a.sequence - b.sequence);
+    const step = clamp(2800 / Math.max(ordered.length, 1), 50, 85);
+    const activeIndex = this.reducedMotion ? ordered.length - 1 : Math.floor(elapsed / step);
     for (let index = 0; index < ordered.length; index += 1) {
       const gear = ordered[index];
-      const reveal = this.reducedMotion ? 1 : clamp((elapsed - index * 48) / 280, 0, 1);
+      const reveal = this.reducedMotion ? 1 : clamp((elapsed - index * step) / 150, 0, 1);
       if (reveal <= 0) continue;
       const labelRadius = clamp(gear.radius * 0.24, 9, 16);
       ctx.save();
+      if (!this.reducedMotion && index === activeIndex) {
+        const ringProgress = clamp((elapsed - index * step) / 170, 0, 1);
+        ctx.globalAlpha = (1 - ringProgress) * 0.52;
+        ctx.strokeStyle = this.darkMode ? "rgba(240,237,227,.9)" : "rgba(34,40,35,.82)";
+        ctx.lineWidth = 2 / Math.max(this.camera.scale, 0.5);
+        ctx.beginPath();
+        ctx.arc(gear.x, gear.y, gear.radius + 7 + ringProgress * 8, 0, TAU);
+        ctx.stroke();
+      }
       ctx.globalAlpha = reveal * 0.96;
       ctx.translate(gear.x, gear.y);
       ctx.scale(0.8 + reveal * 0.2, 0.8 + reveal * 0.2);

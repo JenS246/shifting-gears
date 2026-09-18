@@ -32,10 +32,15 @@ if (!engine.includes("gameAcceleration")) throw new Error("Progressive game acce
 if (!engine.includes("gameMeshDepth")) throw new Error("Pace-aware gear overlap is missing");
 if (!engine.includes("GOLDEN_ANGLE")) throw new Error("Multi-direction composition choreography is missing");
 if (!engine.includes("candidateSector")) throw new Error("Sector-balanced game growth is missing");
-if (!html.includes('select data-setting="palette"') || !html.includes('select data-setting="direction"')) throw new Error("Visible Zen customization is missing");
+if (!html.includes('data-palette-choice="mixed"') || !html.includes('select data-setting="direction"')) throw new Error("Visible Zen customization is missing");
+if (!html.includes('data-palette-choice="earthy"') || !css.includes(".palette-swatch")) throw new Error("Zen palette previews are missing");
 if (!html.includes('data-theme-choice="light"') || !html.includes('data-theme-choice="dark"')) throw new Error("Player-selectable background themes are missing");
 if (!engine.includes("setTheme(theme)")) throw new Error("Canvas theme control is missing");
 if (!app.includes("openZenDialog") || !app.includes("applyTheme")) throw new Error("Zen customization dialog behavior is missing");
+if (!html.includes(">New Machine</button>")) throw new Error("New Machine action label is missing");
+if (html.includes('id="sound-button"') || app.includes("AudioContext") || app.includes("toggleSound")) throw new Error("Removed sound controls or sound-generation code remain");
+if (!engine.includes("lastCadenceKind") || !engine.includes("nextSizeIntent")) throw new Error("Organic generation rhythm is missing");
+if (!engine.includes("const step = clamp(2800 /")) throw new Error("Sequential count reveal is missing");
 if (!html.includes('styles.css?v=') || !html.includes('app.js?v=') || !app.includes('gear-engine.js?v=')) throw new Error("Cache-safe asset versioning is missing");
 if (html.includes("—") || html.includes("–")) throw new Error("Disallowed dash character found in visible copy");
 

@@ -4,7 +4,7 @@ Shifting Gears is a browser-based kinetic counting game and generative art toy. 
 
 ## How it works
 
-- Game Mode first asks the player to choose Slow, Medium, or Fast, then follows a watch, stop, guess, reveal, again loop. A shallow bottom dock keeps the frozen machine visible while the player counts.
+- Game Mode first asks the player to choose Slow, Medium, or Fast, then follows a watch, stop, guess, reveal, new machine loop. A shallow bottom dock keeps the frozen machine visible while the player counts.
 - Results stay attached to the artwork, and an optional numbered overlay lets the player verify every gear after guessing.
 - Zen Mode grows continuously to a much larger composition. Its setup dialog is available from the home screen and from Zen playback, with Auto, Light, and Dark backgrounds plus palette, speed, density, direction, and variety controls.
 - New gears are placed relative to an existing parent gear. Controlled overlap, bridge placement, and multi-gear contact scoring produce dense interlocking compositions in both modes.
@@ -48,11 +48,11 @@ In the GitHub repository settings, set Pages to use GitHub Actions if it is not 
 
 - `index.html`: semantic interface and controls
 - `styles.css`: responsive visual system and accessibility preferences
-- `app.js`: interface state, game loop, session statistics, sound, and settings
+- `app.js`: interface state, game loop, session statistics, themes, and settings
 - `gear-engine.js`: gear data model, placement, procedural geometry, animation, and Canvas rendering
 - `tests/verify.mjs`: dependency-free structural checks
 
-No backend, database, user account, analytics service, API key, or external asset host is required. Sound is synthesized locally from short filtered noise impulses and is off by default.
+No backend, database, user account, analytics service, API key, or external asset host is required.
 
 ## Maintenance
 

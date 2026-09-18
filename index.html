@@ -7,8 +7,8 @@
     <meta name="description" content="A calming generative gear machine and counting game." />
     <title>Shifting Gears</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20260917-3" />
-    <script type="module" src="app.js?v=20260917-3"></script>
+    <link rel="stylesheet" href="styles.css?v=20260918-1" />
+    <script type="module" src="app.js?v=20260918-1"></script>
   </head>
   <body>
     <main id="app" class="app" data-screen="opening">
@@ -23,7 +23,7 @@
       <section class="opening" id="opening" aria-labelledby="opening-title">
         <div class="opening-copy">
           <p class="maker-mark">A kinetic counting game</p>
-          <h1 id="opening-title">Shifting<br />Gears</h1>
+          <h1 id="opening-title"><span>Shifting</span><span>Gears</span></h1>
           <p class="opening-line">Watch the machine build itself.</p>
           <div class="opening-actions">
             <button class="button button-primary" id="game-start">Game Mode</button>
@@ -102,7 +102,7 @@
           </dl>
           <div class="result-actions">
             <button class="button button-secondary count-button" id="count-button" aria-pressed="false">Show the count</button>
-            <button class="button button-primary" id="again-button">Again</button>
+            <button class="button button-primary" id="again-button">New Machine</button>
           </div>
         </div>
       </section>
@@ -112,7 +112,6 @@
           <button class="quiet-button" id="pause-button">Pause</button>
           <button class="quiet-button" id="zen-customize" aria-controls="zen-dialog" aria-expanded="false">Customize</button>
           <button class="quiet-button" id="reset-button">Reset</button>
-          <button class="quiet-button sound-button" id="sound-button" aria-pressed="false">Sound off</button>
         </nav>
       </section>
 
@@ -133,12 +132,19 @@
             <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
           </div>
         </fieldset>
+        <div class="palette-picker" aria-labelledby="palette-label">
+          <p id="palette-label">Palette</p>
+          <div class="palette-options">
+            <button type="button" data-palette-choice="mixed" aria-pressed="true"><span class="palette-swatch swatch-mixed" aria-hidden="true"></span><span>Mixed</span></button>
+            <button type="button" data-palette-choice="warm" aria-pressed="false"><span class="palette-swatch swatch-warm" aria-hidden="true"></span><span>Warm</span></button>
+            <button type="button" data-palette-choice="cool" aria-pressed="false"><span class="palette-swatch swatch-cool" aria-hidden="true"></span><span>Cool</span></button>
+            <button type="button" data-palette-choice="muted" aria-pressed="false"><span class="palette-swatch swatch-muted" aria-hidden="true"></span><span>Muted</span></button>
+            <button type="button" data-palette-choice="bright" aria-pressed="false"><span class="palette-swatch swatch-bright" aria-hidden="true"></span><span>Bright</span></button>
+            <button type="button" data-palette-choice="pastel" aria-pressed="false"><span class="palette-swatch swatch-pastel" aria-hidden="true"></span><span>Pastel</span></button>
+            <button type="button" data-palette-choice="earthy" aria-pressed="false"><span class="palette-swatch swatch-earthy" aria-hidden="true"></span><span>Earthy</span></button>
+          </div>
+        </div>
         <div class="customize-grid" aria-label="Customize the machine">
-          <label>Palette
-            <select data-setting="palette">
-              <option value="mixed">Mixed</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="muted">Muted</option><option value="bright">Bright</option><option value="pastel">Pastel</option><option value="earthy">Earthy</option>
-            </select>
-          </label>
           <label>Speed
             <select data-setting="speed">
               <option value="very-slow">Very slow</option><option value="slow" selected>Slow</option><option value="medium">Medium</option><option value="lively">Lively</option>
